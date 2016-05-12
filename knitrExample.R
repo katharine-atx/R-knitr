@@ -44,7 +44,7 @@ meanInt$avgsteps = as.numeric(meanInt$avgsteps)
 library(plyr)
 dataImpute = join(data, meanInt, by = "interval", type = "left", match = "all")
 
-# Add column for imputed values equal to steps, replacing NAs with interval means
+# Add column for imputed values, replacing NAs with interval average steps
 dataImpute$newSteps = dataImpute$steps
 stepsNA = is.na(dataImpute$newSteps)
 dataImpute$newSteps[stepsNA] = dataImpute$avgsteps[stepsNA]
@@ -54,5 +54,15 @@ newSteps = with(dataImpute, tapply(newSteps, date, sum, na.rm = TRUE))
 hist(newSteps, breaks = 10, col = "blue", xlab = "steps per day w/ imputed values", ylab = "frequency: days", main = "")
 
 # 8.Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
-
-
+# Adding weekday/weekend varaible...
+dataImpute$date = as.Date(dataImpute$date)
+weekpart = weekdays(dataImpute$date)
+dataImpute = data.frame(dataImpute, weekpart)
+dataImpute$weekpart = sub("[MTWF].*", "weekday", dataImpute$weekpart)
+dataImpute$weekpart = sub("S.*", "weekend",dataImpute$weekpart)
+#Panel plot: weekday v. weekend...
+wkdy = which(dataImpute$weekpart == "weekday")
+wknd = which(dataImpute$weekpart == "weekend")
+par(mfcol = c(2,1))
+plot1 = plot(dataImpute$interval[wkdy], dataImpute$newSteps[wkdy], type = "l", ylab = "total steps", xlab = "weekdays: Oct - Nov 2012 ", axes = FALSE, col = "blue")
+plot2 = plot(dataImpute$interval[wknd], dataImpute$newSteps[wknd], type = "l", ylab = "total steps", xlab = "weekends: Oct - Nov 2012 ", axes = FALSE, col = "blue")
